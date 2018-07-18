@@ -6,6 +6,7 @@ import sys
 import os
 from vtk.util import numpy_support
 import vtk
+from statistics import *
 ##############################################################
 
 def main():
@@ -68,10 +69,9 @@ def load_loop_integrate(params,writer,itestep):
 #Block 0 is flow, block 1 is particles
     block_data_flow = vtk_data.GetBlock(0)
     block_data_part = vtk_data.GetBlock(1)
-    point_data_flow = block_data_flow.GetPointData()
+    point_data_flow = block_data_flow.GetCellData()
     point_data_part = block_data_part.GetPointData()
 
-    integrals = {}
     arr_data = {} 
 
 # Loop over all arrays to find the variables of interest
@@ -85,27 +85,12 @@ def load_loop_integrate(params,writer,itestep):
       array_name = point_data_part.GetArrayName(array_idx)
       arr_data[array_name] = \
                 numpy_support.vtk_to_numpy(point_data_part.GetArray(array_idx))
-
-      compute_integrals(array_name,arr_data,integrals)
-
-# Write header for first timestep
-    write_data(curTime,integrals,writer,tstep==0)
-
-def compute_integrals(array_name,arr_data,integrals):
-  array_data = arr_data[array_name]
-
-# Compute SMD, Mean and RMS velocities
-  if array_name=='Diameter':
-    integrals['Mean_D'] = np.mean(array_data)
-    integrals['Stdev_D'] = np.sqrt(np.mean(array_data**2) - np.mean(array_data)**2)
-    integrals['SMD'] = np.sum( array_data**3 ) / np.sum( array_data**2 )
-
-  if array_name=='Velocity':
-    integrals['RMS_Velocity'] = np.sqrt(np.mean(np.sum(array_data*array_data,1)))
-
-  if array_name in ['Temperature']:
-    diameter_array = arr_data['Diameter']
-    integrals['weighted_'+array_name] = np.sum( diameter_array**3 * array_data ) / np.sum( diameter_array**3 )
+    
+    if (params.statistics_type == 'integrals'):
+      # Need to pass return as argument, because it is appended in each pass
+      integrals = compute_integrals(arr_data)
+      write_data(curTime,integrals,writer,tstep==0)
+        
 
 if __name__ == '__main__':
     main()
