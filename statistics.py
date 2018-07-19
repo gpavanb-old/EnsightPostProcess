@@ -1,34 +1,31 @@
 import numpy as np 
-import matplotlib.pyplot as plt
 
 # Compute average gas property snapshot
-#def compute_wall_normal_stats(arr_data):
-#  snapshots = {}
-#
-#  # Reshape velocity data
-#  vel_data = arr_data['V']
-#  dimensions = vtk_data.GetDimensions()
-#  vel_data_res = vel_data.reshape(shape[::-1]).transpose()
-#
-#  shape = tuple(dimensions)
-#
-#  # Extract variables
-#  fields = {}
-#  fields[array_name] =  array_data.reshape(shape[::-1]).transpose()
-#
-#
-#  vel_data = vel_data.reshape((32,96,48,3))
-#  vel_data = vel_data.transpose(2,1,0,3) 
-#  print np.shape(vel_data)
-#  mean_vel = np.mean(vel_data,(0,1))
-#
-#  # Check if wall-normal stats make sense
-#  plt.plot(mean_vel[:,1])
-#  plt.show()
-#
-#  print np.shape(mean_vel)
-#  
-#  return
+def compute_wall_normal_stats(arr_data):
+  snapshots = {}
+
+  # Compute average number density profile
+  nd_data = arr_data['ND']
+  snapshots['ND'] = np.sum(nd_data,(0,1))
+
+  # Compute wall normal velocity profiles
+  vel_data = arr_data['V']
+  vz_data = vel_data[:,:,:,2]
+  snapshots['VZ'] = np.mean(vz_data,(0,1))
+  snapshots['VZ_RMS'] = np.mean(vz_data*vz_data,(0,1))
+
+  # Compute temperature profile
+  temp_data = arr_data['TEMP']
+  snapshots['TEMP'] = np.mean(temp_data,(0,1))
+
+  # Compute mass fraction profile
+  mf_data = arr_data['ZMIX']
+  snapshots['ZMIX'] = np.mean(mf_data,(0,1))
+  
+  return snapshots
+
+#def save_fig(snapList,timeList):
+  
 
 #def compute_spalding_pdf(arr_data,nbins):
 # Recover Spalding number from Sm
